@@ -1,9 +1,10 @@
 # Generate an LLVM DLL from the LIB files that are built.
 # Adapted from LLVMSharp's GenLLVMDLL.ps1 script.
 # See LICENSE.txt for more details.
-import os
-import sys
 import getopt
+import os
+import re
+import sys
 
 MERGELIB = "MergeLLVM.lib"
 LLVMLIB = "LLVM.lib"
@@ -36,4 +37,25 @@ os.system("lib /OUT:{} LLVM*.lib".format(MERGELIB))
 os.system("dumpbin /linkermember:1 {0} > {1}".format(MERGELIB, DUMPOUT))
 
 exports = open(EXPORTSDEF, "w")
-exports.write("EXPORTS\n\n");
+exports.write("EXPORTS\n\n")
+
+p = None
+if arch == "x64":
+	p = re.compile(r"^\s+\w+\s+(LLVM.*)$")
+else:
+	p = re.compile(r"^\s+\w+\s+_(LLVM.*)$")
+
+dumpbin = open(DUMPOUT, "r");
+for line in dumpbin:
+	m = p.match(line)
+	if m is not None:
+		exports.write(m.group(1) + "\n")
+dumpbin.close()
+exports.close()
+
+os.system("link /dll /DEF:{0} /MACHINE:{1} /OUT:{2} {3}".format(
+	EXPORTSDEF, arch, filename, MERGELIB))
+
+cleanup(DUMPOUT)
+cleanup(MERGELIB)
+cleanup(EXPORTSDEF)
