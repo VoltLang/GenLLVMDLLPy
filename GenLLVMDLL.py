@@ -11,7 +11,7 @@ import re
 
 _ARCH_RE = {
     'x64': re.compile(r"^\s+\w+\s+(LLVM.*)$"),
-    'X86': re.compile(r"^\s+\w+\s+_(LLVM.*)$")
+    'x86': re.compile(r"^\s+\w+\s+_(LLVM.*)$")
 }
 
 
@@ -66,7 +66,7 @@ def main():
         '-o', '--output', help='output filename', default='libLLVM.dll'
     )
     parser.add_argument(
-        '--arch', help='architecture', default='X86', choices=['x86', 'x64'], type=str.lower
+        '--arch', help='architecture', default='x86', choices=['x86', 'x64'], type=str.lower
     )
     parser.add_argument(
         'libs', metavar='LIBS', nargs='+', help='list of libraries to merge'
