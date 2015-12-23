@@ -21,9 +21,8 @@ for option in options:
 	elif option[0] == "--arch":
 		arch = option[1]
 
-print "!!!! Please run from appropriate (i.e. x64 or x86) Visual Studio Tools Command Prompt !!!!"
-print "!!!! Generating for architecture --> {} !!!!".format(arch)
-print "*** Generating LLVM Shared DLL {0} for Architecture {1} ***".format(filename, arch)
+print "Please run from appropriate (x64/x86) Visual Studio Tools Command Prompt."
+print "Generating {0} for architecture {1}".format(filename, arch)
 
 def cleanup(fname):
 	if os.path.isfile(fname):
