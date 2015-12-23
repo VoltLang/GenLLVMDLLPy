@@ -31,7 +31,9 @@ def touch_tempfile(*args, **kwargs):
 
 def gen_llvm_dll(output, arch, libs):
     with removing(touch_tempfile(prefix='mergelib', suffix='.lib')) as mergelib, \
-            removing(touch_tempfile(prefix='dumpout', suffix='.txt', text=True)) as dumpout:
+            removing(touch_tempfile(prefix='dumpout', suffix='.txt')) as dumpout, \
+            removing(touch_tempfile(prefix='exports', suffix='.def')) as exports:
+
         lib_args = ['lib', '/OUT:{0}'.format(mergelib)]
         lib_args.extend(libs)
         check_call(lib_args)
@@ -39,22 +41,21 @@ def gen_llvm_dll(output, arch, libs):
         check_call(['dumpbin', '/linkermember:1', mergelib, '>', dumpout])
 
         p = _ARCH_RE[arch]
-
-        with NamedTemporaryFile(prefix='exports', suffix='.def', mode='w+t') as exports:
-            exports.write('EXPORTS\n\n')
+        with open(exports, 'w+t') as exports_f:
+            exports_f.write('EXPORTS\n\n')
 
             with open(dumpout) as dumpbin:
                 for line in dumpbin:
                     m = p.match(line)
                     if m is not None:
-                        exports.write(m.group(1) + '\n')
+                        exports_f.write(m.group(1) + '\n')
 
-            check_call(['link',
-                        '/dll',
-                        '/DEF:{0}'.format(exports.name),
-                        '/MACHINE:{0}'.format(arch),
-                        '/OUT:{1}'.format(output),
-                        mergelib])
+        check_call(['link',
+                    '/dll',
+                    '/DEF:{0}'.format(exports),
+                    '/MACHINE:{0}'.format(arch),
+                    '/OUT:{0}'.format(output),
+                    mergelib])
 
 
 def main():
