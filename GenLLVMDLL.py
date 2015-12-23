@@ -17,6 +17,10 @@ for option in options:
 	elif option[0] == "--arch":
 		arch = option[1]
 
+if arch != "X86" and arch != "x64":
+	print "Architecture should either be 'X86' or 'x64'."
+	sys.exit(1)
+
 print "Please run from appropriate (x64/x86) Visual Studio Tools Command Prompt."
 print "Generating {0} for architecture {1}".format(filename, arch)
 
