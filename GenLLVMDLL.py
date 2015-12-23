@@ -66,7 +66,7 @@ def main():
         '-o', '--output', help='output filename', default='libLLVM.dll'
     )
     parser.add_argument(
-        '--arch', help='architecture', default='X86', choices=['X86', 'x64']
+        '--arch', help='architecture', default='X86', choices=['x86', 'x64'], type=str.lower
     )
     parser.add_argument(
         'libs', metavar='LIBS', nargs='+', help='list of libraries to merge'
