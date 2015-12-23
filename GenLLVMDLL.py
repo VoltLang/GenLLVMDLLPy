@@ -29,10 +29,13 @@ def touch_tempfile(*args, **kwargs):
     return name
 
 
-def gen_llvm_dll(filename, arch):
+def gen_llvm_dll(output, arch, libs):
     with removing(touch_tempfile(prefix='mergelib', suffix='.lib')) as mergelib, \
             removing(touch_tempfile(prefix='dumpout', suffix='.txt', text=True)) as dumpout:
-        check_call(['lib', '/OUT:{0}'.format(mergelib), 'LLVM*.lib'])
+        lib_args = ['lib', '/OUT:{0}'.format(mergelib)]
+        lib_args.extend(libs)
+        check_call(lib_args)
+
         check_call(['dumpbin', '/linkermember:1', mergelib, '>', dumpout])
 
         p = _ARCH_RE[arch]
@@ -50,7 +53,7 @@ def gen_llvm_dll(filename, arch):
                         '/dll',
                         '/DEF:{0}'.format(exports.name),
                         '/MACHINE:{0}'.format(arch),
-                        '/OUT:{1}'.format(filename),
+                        '/OUT:{1}'.format(output),
                         mergelib])
 
 
@@ -58,18 +61,21 @@ def main():
     parser = argparse.ArgumentParser('GenLLVMDLL')
 
     parser.add_argument(
-        '--filename', help='output filename', default='libLLVM.dll'
+        '-o', '--output', help='output filename', default='libLLVM.dll'
     )
     parser.add_argument(
         '--arch', help='architecture', default='X86', choices=['X86', 'x64']
+    )
+    parser.add_argument(
+        'libs', metavar='LIBS', nargs='+', help='list of libraries to merge'
     )
 
     ns = parser.parse_args()
 
     print 'Please run from appropriate (x64/x86) Visual Studio Tools Command Prompt.'
-    print 'Generating {0} for architecture {1}'.format(ns.filename, ns.arch)
+    print 'Generating {0} for architecture {1}'.format(ns.output, ns.arch)
 
-    gen_llvm_dll(ns.filename, ns.arch)
+    gen_llvm_dll(ns.output, ns.arch, ns.libs)
 
 
 if __name__ == '__main__':
