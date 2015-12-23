@@ -38,7 +38,8 @@ def gen_llvm_dll(output, arch, libs):
         lib_args.extend(libs)
         check_call(lib_args)
 
-        check_call(['dumpbin', '/linkermember:1', mergelib, '>', dumpout])
+        with open(dumpout, 'w+t') as dumpout_f:
+            check_call(['dumpbin', '/linkermember:1', mergelib], stdout=dumpout_f)
 
         p = _ARCH_RE[arch]
         with open(exports, 'w+t') as exports_f:
