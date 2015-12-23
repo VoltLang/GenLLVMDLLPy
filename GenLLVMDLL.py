@@ -5,11 +5,7 @@ import getopt
 import os
 import re
 import sys
-
-MERGELIB = "MergeLLVM.lib"
-LLVMLIB = "LLVM.lib"
-DUMPOUT = "dumpbinoutput.txt"
-EXPORTSDEF = "EXPORTS.DEF"
+import tempfile
 
 # Parse command line options.
 filename = "libLLVM.dll"
@@ -24,18 +20,15 @@ for option in options:
 print "Please run from appropriate (x64/x86) Visual Studio Tools Command Prompt."
 print "Generating {0} for architecture {1}".format(filename, arch)
 
-def cleanup(fname):
-	if os.path.isfile(fname):
-		print "Cleaning up {}".format(fname)
-		os.remove(fname);
+mergelib = tempfile.NamedTemporaryFile(prefix = "mergelib", suffix = ".lib", delete = False)
+mergelib.close()
+dumpout = tempfile.NamedTemporaryFile(prefix = "dumpout", suffix = ".txt", mode = "w+t", delete = False)
+dumpout.close()
+exports = tempfile.NamedTemporaryFile(prefix = "exports", suffix = ".def", mode = "w+t", delete = False)
 
-cleanup(MERGELIB)
-cleanup(LLVMLIB)
+os.system("lib /OUT:{} LLVM*.lib".format(mergelib.name))
+os.system("dumpbin /linkermember:1 {0} > {1}".format(mergelib.name, dumpout.name))
 
-os.system("lib /OUT:{} LLVM*.lib".format(MERGELIB))
-os.system("dumpbin /linkermember:1 {0} > {1}".format(MERGELIB, DUMPOUT))
-
-exports = open(EXPORTSDEF, "w")
 exports.write("EXPORTS\n\n")
 
 p = None
@@ -44,7 +37,7 @@ if arch == "x64":
 else:
 	p = re.compile(r"^\s+\w+\s+_(LLVM.*)$")
 
-dumpbin = open(DUMPOUT, "r");
+dumpbin = open(dumpout.name, "r");
 for line in dumpbin:
 	m = p.match(line)
 	if m is not None:
@@ -53,8 +46,8 @@ dumpbin.close()
 exports.close()
 
 os.system("link /dll /DEF:{0} /MACHINE:{1} /OUT:{2} {3}".format(
-	EXPORTSDEF, arch, filename, MERGELIB))
+	exports.name, arch, filename, mergelib.name))
 
-cleanup(DUMPOUT)
-cleanup(MERGELIB)
-cleanup(EXPORTSDEF)
+os.unlink(dumpout.name)
+os.unlink(mergelib.name)
+os.unlink(exports.name)
