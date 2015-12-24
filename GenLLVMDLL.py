@@ -36,7 +36,7 @@ def touch_tempfile(*args, **kwargs):
     return name
 
 
-def gen_llvm_dll(output, arch, libs):
+def gen_llvm_dll(output, arch, libs, print_export):
     with removing(touch_tempfile(prefix='mergelib', suffix='.lib')) as mergelib, \
             removing(touch_tempfile(prefix='dumpout', suffix='.txt')) as dumpout, \
             removing(touch_tempfile(prefix='exports', suffix='.def')) as exports:
@@ -57,6 +57,8 @@ def gen_llvm_dll(output, arch, libs):
                     m = p.match(line)
                     if m is not None:
                         exports_f.write(m.group(1) + '\n')
+                        if print_export:
+                            print m.group(1)
 
         check_call(['link',
                     '/dll',
@@ -78,13 +80,16 @@ def main():
     parser.add_argument(
         'libs', metavar='LIBS', nargs='+', help='list of libraries to merge'
     )
+    parser.add_argument(
+        '--print-exports', help='print functions being exported to stdout', dest='print_export', action='store_true', default=False
+    )
 
     ns = parser.parse_args()
 
     print 'Please run from appropriate (x64/x86) Visual Studio Tools Command Prompt.'
     print 'Generating {0} for architecture {1}'.format(ns.output, ns.arch)
 
-    gen_llvm_dll(ns.output, ns.arch, ns.libs)
+    gen_llvm_dll(ns.output, ns.arch, ns.libs, ns.print_export)
 
 
 if __name__ == '__main__':
