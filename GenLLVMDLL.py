@@ -1,6 +1,13 @@
 # Generate an LLVM DLL from the LIB files that are built.
 # Adapted from LLVMSharp's GenLLVMDLL.ps1 script.
 # See LICENSE.txt for more details.
+#
+# To use, build LLVM with Visual Studio, use the Visual Studio Command prompt
+# to navigate to the directory with the .lib files (Debug\lib etc). Then run
+#     python C:\Path\To\GenLLVMDLL.py LLVM*.lib
+# If you're generating a 64 bit DLL, use the `--arch=x64` flag.
+# You can use the --output flag to set the name of the new DLL.
+# Generate the 64 bit DLL from the 64 bit prompt, 32 bit from the 32 bit prompt.
 from tempfile import NamedTemporaryFile, mkstemp
 from contextlib import contextmanager
 from subprocess import check_call
